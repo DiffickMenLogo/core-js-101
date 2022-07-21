@@ -220,7 +220,7 @@ function getRectangleString(width, height) {
   for (let i = 0; i < width - 2; i += 1) {
     rectangle += '─';
   }
-  rectangle += '┘';
+  rectangle += '┘\n';
   return rectangle;
 }
 
@@ -241,11 +241,17 @@ function getRectangleString(width, height) {
  *    => 'NOPQRSTUVWXYZABCDEFGHIJKLMnopqrstuvwxyzabcdefghijklm'
  *
  */
-function encodeToRot13(/* str */) {
-  throw new Error('Not implemented');
-  // return str.replace(/[a-z]/gi, function (c) {
-  //   return String.fromCharCode((c <= 'Z' ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
-  // });
+function encodeToRot13(str) {
+  return str.replace(/[a-zA-Z]/g, (char) => {
+    const charCode = char.charCodeAt(0);
+    if (charCode >= 65 && charCode <= 90) {
+      return String.fromCharCode(((charCode - 65 + 13) % 26) + 65);
+    }
+    if (charCode >= 97 && charCode <= 122) {
+      return String.fromCharCode(((charCode - 97 + 13) % 26) + 97);
+    }
+    return char;
+  });
 }
 
 /**
@@ -261,9 +267,13 @@ function encodeToRot13(/* str */) {
  *   isString('test') => true
  *   isString(new String('test')) => true
  */
-function isString(/* value */) {
-  throw new Error('Not implemented');
-  //  return typeof value === 'string';
+function isString(value) {
+  if (typeof value === 'string') {
+    return true;
+  } if (value instanceof String) {
+    return true;
+  }
+  return false;
 }
 
 
@@ -291,9 +301,14 @@ function isString(/* value */) {
  *   'Q♠' => 50
  *   'K♠' => 51
  */
-function getCardId(/* value */) {
-  throw new Error('Not implemented');
-  // return value.charCodeAt(0) - 65;
+function getCardId(value) {
+  const cards = [
+    'A♣', '2♣', '3♣', '4♣', '5♣', '6♣', '7♣', '8♣', '9♣', '10♣', 'J♣', 'Q♣', 'K♣',
+    'A♦', '2♦', '3♦', '4♦', '5♦', '6♦', '7♦', '8♦', '9♦', '10♦', 'J♦', 'Q♦', 'K♦',
+    'A♥', '2♥', '3♥', '4♥', '5♥', '6♥', '7♥', '8♥', '9♥', '10♥', 'J♥', 'Q♥', 'K♥',
+    'A♠', '2♠', '3♠', '4♠', '5♠', '6♠', '7♠', '8♠', '9♠', '10♠', 'J♠', 'Q♠', 'K♠',
+  ];
+  return cards.indexOf(value);
 }
 
 
