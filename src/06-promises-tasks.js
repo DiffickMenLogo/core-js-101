@@ -97,19 +97,7 @@ function processAllPromises(array) {
  *
  */
 function getFastestPromise(array) {
-  return new Promise((resolve, reject) => {
-    let counter = 0;
-    array.forEach((promise) => {
-      promise.then((value) => {
-        counter += 1;
-        if (counter === array.length) {
-          resolve(value);
-        }
-      }).catch((error) => {
-        reject(error);
-      });
-    });
-  });
+  return Promise.race(array).then((value) => value);
 }
 
 /**

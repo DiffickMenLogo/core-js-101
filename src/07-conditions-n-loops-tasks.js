@@ -132,9 +132,12 @@ function isTriangle(a, b, c) {
  *
  */
 function doRectanglesOverlap(rect1, rect2) {
-  if (rect1.top + rect1.height < rect2.top || rect1.top > rect2.top + rect2.height) {
-    return false;
-  }
+  const right1 = rect1.left + rect1.width;
+  const right2 = rect2.left + rect2.width;
+  const bottom1 = rect1.top + rect1.height;
+  const bottom2 = rect2.top + rect2.height;
+  if (rect1.left > right2 || rect2.left > right1
+    || rect1.top > bottom2 || rect2.top > bottom1) return false;
   return true;
 }
 
@@ -218,16 +221,10 @@ function findFirstSingleChar(str) {
  *
  */
 function getIntervalString(a, b, isStartIncluded, isEndIncluded) {
-  if (isStartIncluded && isEndIncluded) {
-    return `[${a}, ${b}]`;
-  } if (isStartIncluded && !isEndIncluded) {
-    return `[${a}, ${b})`;
-  } if (!isStartIncluded && isEndIncluded) {
-    return `(${a}, ${b})`;
-  } if (!isStartIncluded && !isEndIncluded) {
-    return `(${a}, ${b})`;
-  }
-  return null;
+  const nums = a < b ? [a, b] : [b, a];
+  const start = isStartIncluded ? '[' : '(';
+  const end = isEndIncluded ? ']' : ')';
+  return `${start}${nums[0]}, ${nums[1]}${end}`;
 }
 
 
@@ -295,19 +292,10 @@ function reverseInteger(num) {
  *   4916123456789012 => false
  */
 function isCreditCardNumber(ccn) {
-  let sum = 0;
-  const numStr = ccn.toString();
-  for (let i = 0; i < numStr.length; i += 1) {
-    if (i % 2 === 0) {
-      sum += Number(numStr[i]);
-    } else {
-      sum += Number(numStr[i]) * 2;
-    }
-  }
-  if (sum % 10 === 0) {
-    return true;
-  }
-  return false;
+  const cnnArray = `${ccn}`.split('').map((item) => Number(item));
+  const sum = cnnArray.map((item, index) => (index % 2 === cnnArray.length % 2 ? item * 2 : item))
+    .map((item) => (item > 9 ? item - 9 : item)).reduce((acc, item) => acc + item, 0);
+  return sum % 10 === 0;
 }
 
 /**
@@ -359,28 +347,19 @@ function getDigitalRoot(num) {
  *   '{[(<{[]}>)]}' = true
  */
 function isBracketsBalanced(str) {
-  const stack = [];
-  for (let i = 0; i < str.length; i += 1) {
-    if (str[i] === '[' || str[i] === '{' || str[i] === '(') {
-      stack.push(str[i]);
-    } else if (str[i] === ']') {
-      if (stack.pop() !== '[') {
-        return false;
-      }
-    } else if (str[i] === '}') {
-      if (stack.pop() !== '{') {
-        return false;
-      }
-    } else if (str[i] === ')') {
-      if (stack.pop() !== '(') {
-        return false;
-      }
-    }
-  }
-  if (stack.length === 0) {
-    return true;
-  }
-  return false;
+  const open = '[({<';
+  const close = '])}>';
+  const arr = str.split('');
+  const last = [];
+  let bol = true;
+  arr.forEach((el) => {
+    if (open.indexOf(el) !== -1) {
+      last.push(el);
+    } else if (open[close.indexOf(el)] === last[last.length - 1]) {
+      last.splice(last.length - 1, 1);
+    } else bol = false;
+  });
+  return bol && !last.length;
 }
 
 
@@ -405,21 +384,7 @@ function isBracketsBalanced(str) {
  *    365, 10 => '365'
  */
 function toNaryString(num, n) {
-  let result = '';
-  const numStr = num.toString();
-  for (let i = 0; i < numStr.length; i += 1) {
-    result += numStr[i];
-  }
-  const numArr = result.split('');
-  let base = n ** (numArr.length - 1);
-  const resultArr = [];
-  for (let i = 0; i < numArr.length; i += 1) {
-    resultArr.push(numArr[i]);
-    if (base > 1) {
-      base /= n;
-    }
-  }
-  return resultArr.join('');
+  return num.toString(n);
 }
 
 
@@ -436,23 +401,25 @@ function toNaryString(num, n) {
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
 function getCommonDirectoryPath(pathes) {
-  const pathesArr = pathes.map((path) => path.split('/'));
-  const commonPath = [];
-  for (let i = 0; i < pathesArr[0].length; i += 1) {
-    let isCommon = true;
-    for (let j = 1; j < pathesArr.length; j += 1) {
-      if (pathesArr[j][i] !== pathesArr[0][i]) {
-        isCommon = false;
-        break;
-      }
+  let count = 1;
+  let newArr = [];
+  let secArr = [];
+  function finder(arr) {
+    newArr = [];
+    secArr = [];
+    arr.map((el) => newArr.push(el.slice(0, count)));
+    arr.map((el) => secArr.push(el.slice(0, count + 1)));
+    count += 1;
+    if (newArr.every((el) => el === newArr[0]) && !secArr.every((el) => el === secArr[0])) {
+      return newArr;
     }
-    if (isCommon) {
-      commonPath.push(pathesArr[0][i]);
-    } else {
-      break;
-    }
+    return finder(arr);
   }
-  return commonPath.join('/');
+  if (!pathes.every((el) => el[0] === pathes[0][0])) {
+    return '';
+  }
+  const newStr = finder(pathes)[0];
+  return newStr.slice(0, newStr.lastIndexOf('/') + 1);
 }
 
 
@@ -521,15 +488,25 @@ function getMatrixProduct(m1, m2) {
  *
  */
 function evaluateTicTacToePosition(position) {
-  const x = position.filter((row) => row.filter((cell) => cell === 'X').length);
-  const o = position.filter((row) => row.filter((cell) => cell === 'O').length);
-  if (x.length === 3) {
-    return 'X';
-  }
-  if (o.length === 3) {
-    return 'O';
-  }
-  return undefined;
+  const inverseArr = [[], [], [], [], [], [], [], []];
+  let winner;
+  position.forEach((el, i) => {
+    inverseArr[6].push(position[i][i]);
+    inverseArr[7].push(position[i][position.length - i - 1]);
+    el.forEach((el2, j) => {
+      inverseArr[i].push(position[j][i]);
+      inverseArr[i + 3].push(position[i][j]);
+    });
+  });
+  inverseArr.forEach((el) => {
+    if (el.reduce((a, b) => a + b) === 'XXX') {
+      winner = 'X';
+    }
+    if (el.reduce((a, b) => a + b) === '000') {
+      winner = '0';
+    }
+  });
+  return winner;
 }
 
 

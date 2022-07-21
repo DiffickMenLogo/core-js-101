@@ -62,9 +62,19 @@ function getPowerFunction(exponent) {
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-function getPolynom() {
-  return (x) => (arguments.length === 0 ? null
-    : arguments.reduce((acc, curr) => acc + curr * x ** (arguments.length - 1), 0));
+function getPolynom(...nums) {
+  if (!nums.length) return null;
+  return function polynom(num) {
+    let y;
+    if (nums.length === 3) {
+      y = nums[0] * (num ** 2) + nums[1] * num + nums[2];
+    } else if (nums.length === 2) {
+      y = nums[0] * num + nums[1];
+    } else if (nums.length === 1) {
+      y = nums[0] * 1;
+    }
+    return y;
+  };
 }
 
 
@@ -82,12 +92,14 @@ function getPolynom() {
  *   ...
  *   memoizer() => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
-  // return (...args) => {
-  //   const cache = {};
-  //   return cache[args] = cache[args] || func(...args);
-  // };
+function memoize(func) {
+  let end = null;
+  return function memoized(...args) {
+    if (end === null) {
+      end = func(...args);
+    }
+    return end;
+  };
 }
 
 
@@ -189,10 +201,12 @@ function partialUsingArguments(fn, ...args1) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
-  // let id = startFrom;
-  // return () => id += 1;
+function getIdGeneratorFunction(startFrom) {
+  let id = startFrom - 1;
+  return () => {
+    id += 1;
+    return id;
+  };
 }
 
 
